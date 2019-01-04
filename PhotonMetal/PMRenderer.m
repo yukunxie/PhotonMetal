@@ -11,7 +11,7 @@
 
 #import "PMRenderer.h"
 
-float vertices[] = {0, 0, 0, -1, -1, 0, 1, -1, 0};
+float vertices[] = {0, 0, 0, 0.5, 0.5, -1, -1, 0, 0, 0,  1, -1, 0, 1, 0};
 float color [] = {0.0, 1.0, 1.0, 1.0};
 
 @implementation PMRenderer
@@ -24,6 +24,8 @@ float color [] = {0.0, 1.0, 1.0, 1.0};
     id<MTLFunction> _fragmentFunction;
     id<MTLBuffer> _vArgumentBuffer;
     id<MTLBuffer> _fArgumentBuffer;
+    id<MTLTexture> _texture;
+    id<MTLSamplerState> _sampler;
 }
 
 -(nonnull instancetype) initWithMetalKitView:(MTKView *)mtkView
@@ -36,8 +38,25 @@ float color [] = {0.0, 1.0, 1.0, 1.0};
     _vertexFunction = [_library newFunctionWithName:@"vertex_shader"];
     _fragmentFunction = [_library newFunctionWithName:@"fragment_shader"];
     
-    id<MTLArgumentEncoder> argumentEncoder = [_vertexFunction newArgumentEncoderWithBufferIndex:1];
-    _vArgumentBuffer = [_device newBufferWithLength:argumentEncoder.encodedLength options:0];
+    id<MTLArgumentEncoder> vargumentEncoder = [_vertexFunction newArgumentEncoderWithBufferIndex:1];
+    _vArgumentBuffer = [_device newBufferWithLength:vargumentEncoder.encodedLength options:0];
+    
+    id<MTLArgumentEncoder> fargumentEncoder = [_fragmentFunction newArgumentEncoderWithBufferIndex:10];
+    _fArgumentBuffer = [_device newBufferWithLength:fargumentEncoder.encodedLength options:0];
+    
+    NSString *path = [[NSBundle mainBundle]pathForResource:@"texture" ofType:@"png"];
+    NSData *data = [NSData dataWithContentsOfFile:path];
+    MTKTextureLoader *loader = [[MTKTextureLoader alloc] initWithDevice:_device];
+    _texture = [loader newTextureWithData:data options:@{MTKTextureLoaderOptionSRGB: [NSNumber numberWithInt:0]} error:nil];
+    
+    MTLSamplerDescriptor *samplerDesc = [MTLSamplerDescriptor new];
+    samplerDesc.minFilter = MTLSamplerMinMagFilterLinear;
+    samplerDesc.magFilter = MTLSamplerMinMagFilterLinear;
+    samplerDesc.mipFilter = MTLSamplerMipFilterNotMipmapped;
+    samplerDesc.normalizedCoordinates = YES;
+    samplerDesc.supportArgumentBuffers = YES;
+    
+    _sampler = [_device newSamplerStateWithDescriptor:samplerDesc];
     
     return self;
 }
@@ -69,6 +88,12 @@ float color [] = {0.0, 1.0, 1.0, 1.0};
         void *numElementsAddress = [argumentEncoder constantDataAtIndex:0];
         memcpy(numElementsAddress, color, sizeof(color));
         
+        id<MTLArgumentEncoder> fragArguEncoder = [_fragmentFunction newArgumentEncoderWithBufferIndex:10];
+        [fragArguEncoder setArgumentBuffer:_fArgumentBuffer offset:0];
+        [fragArguEncoder setTexture:_texture atIndex:0];
+        [fragArguEncoder setSamplerState:_sampler atIndex:1];
+        
+        
 //        [argumentEncoder setBuffer:_colorBuffer offset:0 atIndex:0];
         
         
@@ -91,6 +116,11 @@ float color [] = {0.0, 1.0, 1.0, 1.0};
         [encoder setRenderPipelineState:pipelineState];
         [encoder setVertexBuffer:_vBuffer offset:0 atIndex:0];
         [encoder setVertexBuffer:_vArgumentBuffer offset:0 atIndex:1];
+        [encoder setFragmentBuffer:_fArgumentBuffer offset:0 atIndex:10];
+        
+        // Encode Resources into an Argument Buffer
+        [encoder useResource:_texture usage:MTLResourceUsageSample];
+        
         [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];
         [encoder endEncoding];
     }
