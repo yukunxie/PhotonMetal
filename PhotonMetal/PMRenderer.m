@@ -12,6 +12,7 @@
 #import "PMRenderer.h"
 
 float vertices[] = {0, 0, 0, -1, -1, 0, 1, -1, 0};
+float color [] = {0.0, 1.0, 1.0, 1.0};
 
 @implementation PMRenderer
 {
@@ -21,6 +22,8 @@ float vertices[] = {0, 0, 0, -1, -1, 0, 1, -1, 0};
     id<MTLLibrary> _library;
     id<MTLFunction> _vertexFunction;
     id<MTLFunction> _fragmentFunction;
+    id<MTLBuffer> _vArgumentBuffer;
+    id<MTLBuffer> _fArgumentBuffer;
 }
 
 -(nonnull instancetype) initWithMetalKitView:(MTKView *)mtkView
@@ -32,6 +35,9 @@ float vertices[] = {0, 0, 0, -1, -1, 0, 1, -1, 0};
     _library = [_device newDefaultLibrary];
     _vertexFunction = [_library newFunctionWithName:@"vertex_shader"];
     _fragmentFunction = [_library newFunctionWithName:@"fragment_shader"];
+    
+    id<MTLArgumentEncoder> argumentEncoder = [_vertexFunction newArgumentEncoderWithBufferIndex:1];
+    _vArgumentBuffer = [_device newBufferWithLength:argumentEncoder.encodedLength options:0];
     
     return self;
 }
@@ -58,6 +64,14 @@ float vertices[] = {0, 0, 0, -1, -1, 0, 1, -1, 0};
     }
     
     {
+        id<MTLArgumentEncoder> argumentEncoder = [_vertexFunction newArgumentEncoderWithBufferIndex:1];
+        [argumentEncoder setArgumentBuffer:_vArgumentBuffer offset:0];
+        void *numElementsAddress = [argumentEncoder constantDataAtIndex:0];
+        memcpy(numElementsAddress, color, sizeof(color));
+        
+//        [argumentEncoder setBuffer:_colorBuffer offset:0 atIndex:0];
+        
+        
         MTLRenderPipelineDescriptor *pipelineStateDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
         pipelineStateDescriptor.vertexFunction = _vertexFunction;
         pipelineStateDescriptor.fragmentFunction = _fragmentFunction;
@@ -73,8 +87,10 @@ float vertices[] = {0, 0, 0, -1, -1, 0, 1, -1, 0};
         
         id<MTLRenderCommandEncoder> encoder = [buffer renderCommandEncoderWithDescriptor:passDescriptor];
         
+        
         [encoder setRenderPipelineState:pipelineState];
         [encoder setVertexBuffer:_vBuffer offset:0 atIndex:0];
+        [encoder setVertexBuffer:_vArgumentBuffer offset:0 atIndex:1];
         [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];
         [encoder endEncoding];
     }
