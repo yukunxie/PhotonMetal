@@ -19,6 +19,7 @@
 		74A1262B21DC8F6D00C1D230 /* PMRenderer.m in Sources */ = {isa = PBXBuildFile; fileRef = 74A1262A21DC8F6D00C1D230 /* PMRenderer.m */; };
 		74A1265D21DF058100C1D230 /* Shader.metal in Sources */ = {isa = PBXBuildFile; fileRef = 74A1265C21DF058100C1D230 /* Shader.metal */; };
 		74A1265F21DF5AE800C1D230 /* texture.png in Resources */ = {isa = PBXBuildFile; fileRef = 74A1265E21DF5AE800C1D230 /* texture.png */; };
+		74A1266421E229BE00C1D230 /* cube.metal in Sources */ = {isa = PBXBuildFile; fileRef = 74A1266321E229BE00C1D230 /* cube.metal */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,6 +40,7 @@
 		74A1262A21DC8F6D00C1D230 /* PMRenderer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PMRenderer.m; sourceTree = "<group>"; };
 		74A1265C21DF058100C1D230 /* Shader.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shader.metal; sourceTree = "<group>"; };
 		74A1265E21DF5AE800C1D230 /* texture.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = texture.png; path = resources/texture.png; sourceTree = "<group>"; };
+		74A1266321E229BE00C1D230 /* cube.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = cube.metal; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -88,6 +90,7 @@
 				74A1262A21DC8F6D00C1D230 /* PMRenderer.m */,
 				74A1265C21DF058100C1D230 /* Shader.metal */,
 				74A1265E21DF5AE800C1D230 /* texture.png */,
+				74A1266321E229BE00C1D230 /* cube.metal */,
 			);
 			path = PhotonMetal;
 			sourceTree = "<group>";
@@ -175,6 +178,7 @@
 			files = (
 				742358CB21DC5C6E002F8EE5 /* ViewController.m in Sources */,
 				742358D621DC5C70002F8EE5 /* main.m in Sources */,
+				74A1266421E229BE00C1D230 /* cube.metal in Sources */,
 				742358C821DC5C6E002F8EE5 /* AppDelegate.m in Sources */,
 				74A1265D21DF058100C1D230 /* Shader.metal in Sources */,
 				74A1262B21DC8F6D00C1D230 /* PMRenderer.m in Sources */,
