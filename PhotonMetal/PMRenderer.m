@@ -69,6 +69,11 @@ float _height = 1920;
     id<MTLTexture> _renderTextureDepth;
     id<MTLTexture> _renderTextureStencil;
     
+    id<MTLTexture> _mainDepth;
+    id<MTLTexture> _mainStencil;
+    
+    id<MTLDepthStencilState> _depthStencilState;
+    
     // cube
     id<MTLBuffer> _cubeVerticeBuffer;
     id<MTLBuffer> _cubeIndiceBuffer;
@@ -133,6 +138,32 @@ float _height = 1920;
     renderTextureStencilDescriptor.usage = MTLTextureUsageRenderTarget;
     renderTextureStencilDescriptor.pixelFormat = MTLPixelFormatStencil8;
     _renderTextureStencil = [_device newTextureWithDescriptor:renderTextureStencilDescriptor];
+    
+//    mtkView.depthStencilPixelFormat = MTLPixelFormatX32_Stencil8;
+    [mtkView setDepthStencilPixelFormat:MTLPixelFormatDepth32Float_Stencil8];
+    // main depth stencil
+    {
+        MTLTextureDescriptor *depthDescriptor = [[MTLTextureDescriptor alloc] init];
+        depthDescriptor.usage = MTLTextureUsageRenderTarget;
+        depthDescriptor.pixelFormat = mtkView.depthStencilPixelFormat ;
+        depthDescriptor.height = _height;
+        depthDescriptor.width = _width;
+        _mainDepth = [_device newTextureWithDescriptor:depthDescriptor];
+        
+        MTLTextureDescriptor *stencilDescriptor = [[MTLTextureDescriptor alloc] init];
+        stencilDescriptor.usage = MTLTextureUsageRenderTarget;
+        stencilDescriptor.pixelFormat = MTLPixelFormatStencil8;
+        stencilDescriptor.height = _height;
+        stencilDescriptor.width = _width;
+        _mainStencil = [_device newTextureWithDescriptor:stencilDescriptor];
+        
+        // depth stencil state
+        MTLDepthStencilDescriptor *depthStencilDescriptor = [[MTLDepthStencilDescriptor alloc] init];
+        depthStencilDescriptor.depthWriteEnabled = true;
+        depthStencilDescriptor.depthCompareFunction = MTLCompareFunctionLess;
+        _depthStencilState = [_device newDepthStencilStateWithDescriptor:depthStencilDescriptor];
+        
+    }
     
     // cube
     {
@@ -203,6 +234,10 @@ float _height = 1920;
         pipelineStateDescriptor.vertexFunction = _vertexFunction;
         pipelineStateDescriptor.fragmentFunction = _fragmentFunction;
         pipelineStateDescriptor.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
+        pipelineStateDescriptor.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float_Stencil8;
+        pipelineStateDescriptor.stencilAttachmentPixelFormat = MTLPixelFormatDepth32Float_Stencil8;
+        
+//        pipelineStateDescriptor.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float_Stencil8;
 
         NSError *errors = nil;
         id<MTLRenderPipelineState> pipelineState = [_device newRenderPipelineStateWithDescriptor:pipelineStateDescriptor error:&errors];
@@ -212,6 +247,18 @@ float _height = 1920;
         passDescriptor.colorAttachments[0].loadAction = MTLLoadActionLoad;
         passDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
         passDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(1.0, 1.0, 0.0, 1.0);
+        
+        passDescriptor.depthAttachment.texture = _mainDepth;
+        passDescriptor.depthAttachment.loadAction = MTLLoadActionClear;
+        passDescriptor.depthAttachment.storeAction = MTLStoreActionStore;
+        passDescriptor.depthAttachment.clearDepth = 1.0;
+//
+        passDescriptor.stencilAttachment.texture = _mainDepth;
+        passDescriptor.stencilAttachment.loadAction = MTLLoadActionClear;
+        passDescriptor.stencilAttachment.storeAction = MTLStoreActionStore;
+        passDescriptor.stencilAttachment.clearStencil = 0;
+        
+//        passDescriptor.depthAttachment
 
         id<MTLRenderCommandEncoder> encoder = [buffer renderCommandEncoderWithDescriptor:passDescriptor];
 
@@ -233,7 +280,7 @@ float _height = 1920;
 
         // Encode Resources into an Argument Buffer
         [encoder useResource:_texture usage:MTLResourceUsageSample];
-
+        [encoder setDepthStencilState:_depthStencilState];
         [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];
         [encoder endEncoding];
     }
@@ -279,6 +326,8 @@ float _height = 1920;
         pipelineStateDescriptor.vertexFunction = _cubeVertexFunction;
         pipelineStateDescriptor.fragmentFunction = _cubeFragmentFunction;
         pipelineStateDescriptor.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
+        pipelineStateDescriptor.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float_Stencil8;
+        pipelineStateDescriptor.stencilAttachmentPixelFormat = MTLPixelFormatDepth32Float_Stencil8;
         
         
         NSError *errors = nil;
@@ -290,6 +339,16 @@ float _height = 1920;
         passDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
         passDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(1.0, 1.0, 0.0, 1.0);
         
+        passDescriptor.depthAttachment.texture = _mainDepth;
+        passDescriptor.depthAttachment.loadAction = MTLLoadActionLoad;
+        passDescriptor.depthAttachment.storeAction = MTLStoreActionStore;
+        passDescriptor.depthAttachment.clearDepth = 1.0;
+        //
+        passDescriptor.stencilAttachment.texture = _mainDepth;
+        passDescriptor.stencilAttachment.loadAction = MTLLoadActionLoad;
+        passDescriptor.stencilAttachment.storeAction = MTLStoreActionStore;
+        passDescriptor.stencilAttachment.clearStencil = 0;
+        
         id<MTLRenderCommandEncoder> encoder = [buffer renderCommandEncoderWithDescriptor:passDescriptor];
         
         
@@ -298,6 +357,7 @@ float _height = 1920;
         [encoder setVertexBuffer:_cubeVertexAB offset:0 atIndex:1];
         [encoder setCullMode:MTLCullModeBack];
         [encoder setFrontFacingWinding:MTLWindingCounterClockwise];
+        [encoder setDepthStencilState:_depthStencilState];
 //        [encoder setFragmentBuffer:_fArgumentBuffer offset:0 atIndex:10];
         
         //        // render triangle to the upper left corner.
