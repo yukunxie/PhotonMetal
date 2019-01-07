@@ -49,8 +49,8 @@ short cubeIndices[] = {
     6, 7, 3
 };
 
-int _width = 1080;
-int _height = 1920;
+float _width = 1080;
+float _height = 1920;
 
 @implementation PMRenderer
 {
@@ -140,7 +140,7 @@ int _height = 1920;
         _cubeIndiceBuffer = [_device newBufferWithBytes:cubeIndices length:sizeof(cubeIndices) options:MTLResourceCPUCacheModeDefaultCache];
         
         _mvMatrix = GLKMatrix4Translate(GLKMatrix4Identity, 0, 0, -5);
-        _pMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(45), _height/_width, 1, 100);
+        _pMatrix = GLKMatrix4MakePerspective(GLKMathDegreesToRadians(45), _width/_height, 1, 100);
         
         _cubeVertexFunction = [_library newFunctionWithName:@"cube_vertex_shader"];
         _cubeFragmentFunction = [_library newFunctionWithName:@"cube_fragment_shader"];
@@ -184,73 +184,73 @@ int _height = 1920;
         [encoder endEncoding];
     }
     
-//    {
-//        id<MTLArgumentEncoder> argumentEncoder = [_vertexFunction newArgumentEncoderWithBufferIndex:1];
-//        [argumentEncoder setArgumentBuffer:_vArgumentBuffer offset:0];
-//        void *numElementsAddress = [argumentEncoder constantDataAtIndex:0];
-//        memcpy(numElementsAddress, color, sizeof(color));
-//
-//        id<MTLArgumentEncoder> fragArguEncoder = [_fragmentFunction newArgumentEncoderWithBufferIndex:10];
-//        [fragArguEncoder setArgumentBuffer:_fArgumentBuffer offset:0];
-//        [fragArguEncoder setTexture:_texture atIndex:0];
-//        [fragArguEncoder setSamplerState:_sampler atIndex:1];
-//
-//
-////        [argumentEncoder setBuffer:_colorBuffer offset:0 atIndex:0];
-//
-//
-//        MTLRenderPipelineDescriptor *pipelineStateDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
-//        pipelineStateDescriptor.vertexFunction = _vertexFunction;
-//        pipelineStateDescriptor.fragmentFunction = _fragmentFunction;
-//        pipelineStateDescriptor.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
-//
-//        NSError *errors = nil;
-//        id<MTLRenderPipelineState> pipelineState = [_device newRenderPipelineStateWithDescriptor:pipelineStateDescriptor error:&errors];
-//
-//        MTLRenderPassDescriptor *passDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
-//        passDescriptor.colorAttachments[0].texture = view.currentDrawable.texture;
-//        passDescriptor.colorAttachments[0].loadAction = MTLLoadActionLoad;
-//        passDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
-//        passDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(1.0, 1.0, 0.0, 1.0);
-//
-//        id<MTLRenderCommandEncoder> encoder = [buffer renderCommandEncoderWithDescriptor:passDescriptor];
-//
-//
-//        [encoder setRenderPipelineState:pipelineState];
-//        [encoder setVertexBuffer:_vBuffer offset:0 atIndex:0];
-//        [encoder setVertexBuffer:_vArgumentBuffer offset:0 atIndex:1];
-//        [encoder setFragmentBuffer:_fArgumentBuffer offset:0 atIndex:10];
-//
-////        // render triangle to the upper left corner.
-////        MTLViewport viewport;
-////        viewport.originX = 1080/2;
-////        viewport.originY = 0;
-////        viewport.height = 1920/2;
-////        viewport.width = 1080/2;
-////        viewport.zfar = 1;
-////        [encoder setViewport:viewport];
-//
-//
-//        // Encode Resources into an Argument Buffer
-//        [encoder useResource:_texture usage:MTLResourceUsageSample];
-//
-//        [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];
-//        [encoder endEncoding];
-//    }
+    {
+        id<MTLArgumentEncoder> argumentEncoder = [_vertexFunction newArgumentEncoderWithBufferIndex:1];
+        [argumentEncoder setArgumentBuffer:_vArgumentBuffer offset:0];
+        void *numElementsAddress = [argumentEncoder constantDataAtIndex:0];
+        memcpy(numElementsAddress, color, sizeof(color));
+
+        id<MTLArgumentEncoder> fragArguEncoder = [_fragmentFunction newArgumentEncoderWithBufferIndex:10];
+        [fragArguEncoder setArgumentBuffer:_fArgumentBuffer offset:0];
+        [fragArguEncoder setTexture:_texture atIndex:0];
+        [fragArguEncoder setSamplerState:_sampler atIndex:1];
+
+
+//        [argumentEncoder setBuffer:_colorBuffer offset:0 atIndex:0];
+
+
+        MTLRenderPipelineDescriptor *pipelineStateDescriptor = [[MTLRenderPipelineDescriptor alloc] init];
+        pipelineStateDescriptor.vertexFunction = _vertexFunction;
+        pipelineStateDescriptor.fragmentFunction = _fragmentFunction;
+        pipelineStateDescriptor.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
+
+        NSError *errors = nil;
+        id<MTLRenderPipelineState> pipelineState = [_device newRenderPipelineStateWithDescriptor:pipelineStateDescriptor error:&errors];
+
+        MTLRenderPassDescriptor *passDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
+        passDescriptor.colorAttachments[0].texture = view.currentDrawable.texture;
+        passDescriptor.colorAttachments[0].loadAction = MTLLoadActionLoad;
+        passDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
+        passDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(1.0, 1.0, 0.0, 1.0);
+
+        id<MTLRenderCommandEncoder> encoder = [buffer renderCommandEncoderWithDescriptor:passDescriptor];
+
+
+        [encoder setRenderPipelineState:pipelineState];
+        [encoder setVertexBuffer:_vBuffer offset:0 atIndex:0];
+        [encoder setVertexBuffer:_vArgumentBuffer offset:0 atIndex:1];
+        [encoder setFragmentBuffer:_fArgumentBuffer offset:0 atIndex:10];
+
+//        // render triangle to the upper left corner.
+//        MTLViewport viewport;
+//        viewport.originX = 1080/2;
+//        viewport.originY = 0;
+//        viewport.height = 1920/2;
+//        viewport.width = 1080/2;
+//        viewport.zfar = 1;
+//        [encoder setViewport:viewport];
+
+
+        // Encode Resources into an Argument Buffer
+        [encoder useResource:_texture usage:MTLResourceUsageSample];
+
+        [encoder drawPrimitives:MTLPrimitiveTypeTriangle vertexStart:0 vertexCount:3];
+        [encoder endEncoding];
+    }
     
-//    // render to texture
-//    {
-//        MTLRenderPassDescriptor *passDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
-//        passDescriptor.colorAttachments[0].texture = _renderTextureColor;
-//        passDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
-//        passDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
-//        passDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(1.0, 1.0, 0.0, 1.0);
-//
-//        id<MTLRenderCommandEncoder> encoder = [buffer renderCommandEncoderWithDescriptor:passDescriptor];
-//        [encoder insertDebugSignpost:@"render to target"];
-//        [encoder endEncoding];
-//
-//    }
+    // render to texture
+    {
+        MTLRenderPassDescriptor *passDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
+        passDescriptor.colorAttachments[0].texture = _renderTextureColor;
+        passDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
+        passDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
+        passDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(1.0, 1.0, 0.0, 1.0);
+
+        id<MTLRenderCommandEncoder> encoder = [buffer renderCommandEncoderWithDescriptor:passDescriptor];
+        [encoder insertDebugSignpost:@"render to target"];
+        [encoder endEncoding];
+
+    }
     
     // render cube
     {
