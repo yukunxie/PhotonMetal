@@ -9,6 +9,8 @@
 #import "ViewController.h"
 #import "PMRenderer.h"
 
+#import "IOS/GameView.h"
+
 #import <Metal/MTLDefines.h>
 #import <Metal/MTLTypes.h>
 #import <Metal/MTLPixelFormat.h>
@@ -33,6 +35,8 @@
     MTKView *_view;
     id<MTLCommandQueue> _queue;
     PMRenderer *_render;
+    
+    RXGameView *_gameView;
 }
 
 - (void)viewDidLoad {
@@ -41,8 +45,11 @@
     _view = (MTKView *)self.view;
     _view.device = MTLCreateSystemDefaultDevice();
     
-    _render = [[PMRenderer alloc]initWithMetalKitView:_view];
-    _view.delegate = _render;
+    _gameView = [[RXGameView alloc] initWithMetalKitView:_view];
+    _view.delegate = _gameView;
+    
+//    _render = [[PMRenderer alloc]initWithMetalKitView:_view];
+//    _view.delegate = _render;
     
 //    id<MTLDevice> device = _view.device;
 //    _queue = [device newCommandQueue];
